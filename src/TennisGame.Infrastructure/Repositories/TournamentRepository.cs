@@ -16,28 +16,24 @@ public class TournamentRepository: ITournamentRepository
 
     public async Task<IList<Tournament>> GetByCriteria(Criteria criteria)
     {
-        var query = (Tournament t) => true;
-
+        var tournamentFilter = _context.Tournaments.Where(t => true);
+        
         if (criteria.InitialDate.HasValue)
         {
-            query += tournament => tournament.InitialDate >= criteria.InitialDate;
+            tournamentFilter = tournamentFilter.Where(t => t.InitialDate >= criteria.InitialDate);
         }
         
         if (criteria.PlayerType.HasValue)
         {
-            query += tournament => tournament.PlayerType == criteria.PlayerType;
+            tournamentFilter = tournamentFilter.Where(t => t.PlayerType == criteria.PlayerType);
         }
 
-        var result = _context.Tournaments
-            .Include(m => m.Winner)
+        return await tournamentFilter.Include(m => m.Winner)
             .Include(t => t.Matches)
             .ThenInclude(m => m.PlayerOne)
-            .Where(query)
             .Skip(criteria.Offset)
             .Take(criteria.Size)
-            .ToList();
-        
-        return await Task.FromResult(result);
+            .ToListAsync();
     }
 
     public async Task<Tournament> AddAsync(Tournament tournament)
