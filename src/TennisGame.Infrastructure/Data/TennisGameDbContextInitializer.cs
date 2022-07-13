@@ -5,9 +5,8 @@ namespace TennisGame.Infrastructure.Data;
 
 public class TennisGameDbContextInitializer
 {
-    public static async Task SeedAsync(TennisGameDbContext context, ILogger logger, int retry = 0)
+    public static async Task InitialiseAsync(TennisGameDbContext context, ILogger logger)
     {
-        var retryForAvailability = retry;
         try
         {
             if (context.Database.IsSqlServer())
@@ -17,12 +16,7 @@ public class TennisGameDbContextInitializer
         }
         catch (Exception ex)
         {
-            if (retryForAvailability >= 10) throw;
-
-            retryForAvailability++;
-            
-            logger.LogError(ex.Message);
-            await SeedAsync(context, logger, retryForAvailability);
+            logger.LogError(ex, "An error occurred while initialising the database.");
             throw;
         }
     }
